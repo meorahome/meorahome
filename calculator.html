@@ -407,6 +407,15 @@
       grid-template-columns: 1fr 1fr !important;
     }
 
+    /* My price: side-by-side → stacked */
+    .my-price-layout {
+      grid-template-columns: 1fr !important;
+      gap: 1rem !important;
+    }
+    .my-price-layout > div:first-child input {
+      font-size: 1.8rem !important;
+    }
+
     /* All 3-col grids → 1 col */
     [style*="grid-template-columns:1fr 1fr 1fr"],
     [style*="grid-template-columns: 1fr 1fr 1fr"] {
@@ -938,7 +947,7 @@
       <div style="font-size:0.72rem;color:rgba(255,255,255,0.3)">введи цену которую хочешь поставить</div>
     </div>
 
-    <div style="display:grid;grid-template-columns:180px 1fr;gap:2rem;align-items:start">
+    <div style="display:grid;grid-template-columns:180px 1fr;gap:2rem;align-items:start" class="my-price-layout">
       <!-- Input -->
       <div>
         <div style="font-size:0.65rem;color:var(--accent2);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem">Цена листинга</div>
