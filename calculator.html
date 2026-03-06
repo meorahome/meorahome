@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Meora · Цена</title>
+
+<!-- PWA / iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Meora Цена">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2d4a3e">
+
+<!-- iOS иконка (SVG inline → base64 PNG генерируем через canvas в JS) -->
+<link rel="apple-touch-icon" id="appleTouchIcon">
+
+<!-- Manifest inline через blob -->
+<link rel="manifest" id="manifestLink">
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0ea;
+    --card: #fffdf9;
+    --accent: #2d4a3e;
+    --accent2: #c8a96e;
+    --text: #1a1a18;
+    --muted: #7a7a72;
+    --border: #e0d9ce;
+    --green: #3a6b4a;
+    --red: #8b3a3a;
+    --yellow: #b8860b;
+  }
+
+  .card.full-width .field label {
+    min-height: 2em;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  input[type="number"]:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    background: var(--bg);
+  }
+  input[type="number"]:disabled + .unit {
+    opacity: 0.45;
+  }
+
+
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    /* iOS safe area */
+    padding-top: max(2rem, env(safe-area-inset-top));
+    padding-bottom: max(2rem, env(safe-area-inset-bottom));
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  header p {
+    color: var(--muted);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  @media (max-width: 560px) {
+    .grid { grid-template-columns: 1fr; }
+    header h1 { font-size: 1.5rem; }
+    .card.full-width > div[style*="grid-template-columns:1fr 1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .card-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .field {
+    margin-bottom: 1rem;
+  }
+
+  .field:last-child { margin-bottom: 0; }
+
+  label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+    font-weight: 400;
+  }
+
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .input-wrap .unit {
+    position: absolute;
+    right: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  input[type="number"], input[type="text"], select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 2.5rem 0.6rem 0.9rem;
+    font-size: 0.95rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  input:focus, select:focus {
+    border-color: var(--accent);
+  }
+
+  select {
+    padding-right: 0.9rem;
+    cursor: pointer;
+  }
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+
+  /* Result card */
+  .result-card {
+    background: var(--accent);
+    border-radius: 16px;
+    padding: 2rem;
+    color: #fff;
+    margin-bottom: 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-card::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(200,169,110,0.12);
+  }
+
+  .result-card::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: -30px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (max-width: 560px) {
+    .result-grid { grid-template-columns: 1fr 1fr; }
+    .result-grid .main { grid-column: 1/-1; }
+  }
+
+  .result-item label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 0.3rem;
+  }
+
+  .result-item .value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1;
+  }
+
+  .result-item.main .value {
+    font-size: 2.6rem;
+    color: var(--accent2);
+  }
+
+  .result-item .sub {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.45);
+    margin-top: 0.2rem;
+  }
+
+  /* Breakdown */
+  .breakdown {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+
+  .breakdown-row:last-child { border-bottom: none; }
+
+  .breakdown-row .label { color: var(--muted); }
+  .breakdown-row .amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+  }
+
+  .breakdown-row.total {
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 2px solid var(--accent);
+    border-bottom: none;
+    font-weight: 500;
+  }
+
+  .breakdown-row.total .label { color: var(--accent); font-weight: 600; }
+  .breakdown-row.total .amount { color: var(--accent); font-weight: 700; font-size: 1rem; }
+
+  /* Status badge */
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .status.ok { background: rgba(58,107,74,0.12); color: var(--green); }
+  .status.warn { background: rgba(184,134,11,0.12); color: var(--yellow); }
+  .status.bad { background: rgba(139,58,58,0.12); color: var(--red); }
+
+  .margin-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+  }
+
+  /* Hint */
+  .hint {
+    background: rgba(200,169,110,0.1);
+    border-left: 3px solid var(--accent2);
+    border-radius: 0 8px 8px 0;
+    padding: 0.85rem 1rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+  }
+
+  .hint strong { color: var(--text); }
+
+  /* Toggle */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .toggle-label {
+    font-size: 0.82rem;
+    color: var(--text);
+  }
+
+  .toggle {
+    position: relative;
+    width: 40px;
+    height: 22px;
+  }
+
+  .toggle input { opacity: 0; width: 0; height: 0; }
+
+  .slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 11px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .slider::before {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    left: 3px; top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+
+  .toggle input:checked + .slider { background: var(--accent); }
+  .toggle input:checked + .slider::before { transform: translateX(18px); }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-family: 'DM Mono', monospace;
+    margin-top: 2rem;
+    opacity: 0.6;
+  }
+
+  /* ── Mobile ─────────────────────────────────────────── */
+  @media (max-width: 600px) {
+    body {
+      padding: 1rem 0.75rem;
+      padding-top: max(1rem, env(safe-area-inset-top));
+      padding-bottom: max(5rem, env(safe-area-inset-bottom));
+    }
+
+    .container { max-width: 100%; }
+
+    header { margin-bottom: 1.5rem; }
+    header h1 { font-size: 1.4rem; }
+
+    .card { padding: 1rem; border-radius: 10px; }
+    .result-card { padding: 1.25rem; border-radius: 12px; }
+
+    /* All 3-col grids → 1 col */
+    [style*="grid-template-columns:1fr 1fr 1fr"],
+    [style*="grid-template-columns: 1fr 1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+
+    /* 2-col grids → 1 col */
+    [style*="grid-template-columns:1fr 1fr"],
+    [style*="grid-template-columns: 1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+    }
+
+    /* Results grid: rec price full width, rest 2-col */
+    .result-grid {
+      grid-template-columns: 1fr 1fr !important;
+      gap: 1rem;
+    }
+    .result-grid .main { grid-column: 1 / -1; }
+    .result-item.main .value { font-size: 2.2rem; }
+    .result-item .value { font-size: 1.3rem; }
+
+    /* Set calculator results → 2-col */
+    #setResults {
+      grid-template-columns: 1fr 1fr !important;
+      gap: 0.75rem;
+    }
+
+    /* Breakeven grid → 2-col */
+    .be-grid {
+      grid-template-columns: 1fr 1fr !important;
+    }
+
+    /* Input font size — prevent iOS zoom on focus */
+    input[type="number"],
+    input[type="text"],
+    select {
+      font-size: 1rem !important;
+    }
+
+    /* Bigger tap targets */
+    .input-wrap input { padding: 0.7rem 2.5rem 0.7rem 0.9rem; }
+
+    /* Multi-part part rows — 3 fields + × in a row */
+    #partsContainer [style*="grid-template-columns:1fr 1fr 1fr auto"] {
+      grid-template-columns: 1fr 1fr 1fr auto !important;
+    }
+
+    /* Discount table: stack rows */
+    [style*="grid-template-columns:1fr 1fr 1fr"][style*="discount"],
+    .discount-grid {
+      grid-template-columns: 1fr 1fr !important;
+    }
+
+    /* Details/collapsible padding */
+    details > div { padding: 0.75rem !important; }
+
+    /* Faire section grids */
+    [style*="grid-template-columns:1fr 1fr 1fr 1fr"] {
+      grid-template-columns: 1fr 1fr !important;
+    }
+
+    /* My price section */
+    [style*="grid-template-columns:1fr 1fr 1fr"][id] {
+      grid-template-columns: 1fr 1fr !important;
+    }
+
+    /* Breakdown rows — prevent overflow */
+    .breakdown-row { font-size: 0.78rem; }
+    .breakdown-row .label { max-width: 65%; }
+
+    /* Margin row stack */
+    .margin-row { flex-wrap: wrap; gap: 0.5rem; }
+
+    /* Button full width */
+    button[onclick="addPart()"] { font-size: 0.8rem; padding: 0.6rem; }
+
+    /* Sticky bottom hint for add to homescreen */
+    .pwa-hint {
+      position: fixed;
+      bottom: env(safe-area-inset-bottom, 0);
+      left: 0; right: 0;
+      background: var(--accent);
+      color: rgba(255,255,255,0.9);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      text-align: center;
+      padding: 0.6rem 1rem;
+      z-index: 100;
+      letter-spacing: 0.04em;
+      display: none;
+    }
+    .pwa-hint.show { display: block; }
+    .pwa-hint button {
+      background: none; border: none;
+      color: rgba(255,255,255,0.5);
+      font-size: 1rem; cursor: pointer;
+      position: absolute; right: 0.75rem; top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+</style>
+</head>
+<body>
+<!-- iOS "Add to Home Screen" hint -->
+<div class="pwa-hint" id="pwaHint">
+  ↑ Добавь на экран: Safari → Поделиться → На экран «Домой»
+  <button onclick="document.getElementById('pwaHint').style.display='none'">×</button>
+</div>
+<div class="container">
+
+  <header>
+    <h1>Калькулятор цены Etsy</h1>
+    <p>Meora Home · Badalona, España</p>
+  </header>
+
+  <!-- COSTS -->
+  <div class="grid">
+
+    <!-- Materials — full width -->
+    <div class="card full-width">
+      <div class="card-title">Себестоимость · Материалы</div>
+
+      <!-- Multi-part toggle -->
+      <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:1rem">
+        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.78rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.07em">
+          <input type="checkbox" id="multiPartToggle" style="width:1rem;height:1rem;accent-color:var(--accent);cursor:pointer">
+          Изделие из нескольких частей / пластин
+        </label>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem 1.5rem;margin-bottom:1rem">
+
+        <!-- PLA -->
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent2);margin-bottom:0.7rem">🧵 Пластик PLA</div>
+
+          <!-- Single-part fields (shown when toggle OFF) -->
+          <div id="singlePartFields">
+            <div class="field">
+              <label>Вес изделия</label>
+              <div class="input-wrap">
+                <input type="number" id="plaGrams" value="30" step="1" min="0">
+                <span class="unit">г</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Цена катушки 1 кг</label>
+              <div class="input-wrap">
+                <input type="number" id="plaSpoolPrice" value="23" step="0.5" min="0">
+                <span class="unit">€</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Multi-part fields (shown when toggle ON) -->
+          <div id="multiPartFields" style="display:none">
+            <div class="field">
+              <label>Цена катушки 1 кг</label>
+              <div class="input-wrap">
+                <input type="number" id="plaSpoolPriceMulti" value="23" step="0.5" min="0">
+                <span class="unit">€</span>
+              </div>
+            </div>
+            <div id="partsContainer">
+              <!-- Parts added dynamically -->
+            </div>
+            <button onclick="addPart()" style="margin-top:0.5rem;width:100%;padding:0.4rem;border:1px dashed var(--border);border-radius:6px;background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.72rem;cursor:pointer;letter-spacing:0.06em">+ добавить часть</button>
+          </div>
+
+          <div style="background:var(--bg);border-radius:6px;padding:0.5rem 0.7rem;margin-top:0.5rem;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:0.75rem;color:var(--muted)">Стоимость пластика</span>
+            <strong id="plaCalc" style="font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--accent)">—</strong>
+          </div>
+        </div>
+
+        <!-- Electricity -->
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent2);margin-bottom:0.7rem">⚡ Электричество</div>
+
+          <!-- Single-part -->
+          <div id="singleElecFields">
+            <div class="field">
+              <label>Время печати пластины</label>
+              <div class="input-wrap">
+                <input type="number" id="printHours" value="2" step="0.25" min="0">
+                <span class="unit">ч</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Штук на пластине</label>
+              <div class="input-wrap">
+                <input type="number" id="itemsPerPlate" value="1" step="1" min="1">
+                <span class="unit">шт</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Multi-part: elec is summed from parts -->
+          <div id="multiElecNote" style="display:none;font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;padding:0.5rem 0;line-height:1.5">
+            Время печати суммируется<br>из всех частей слева
+          </div>
+
+          <div style="background:var(--bg);border-radius:6px;padding:0.5rem 0.7rem;margin-top:0.25rem;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:0.75rem;color:var(--muted)">Стоимость печати</span>
+            <strong id="elecCalc" style="font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--accent)">—</strong>
+          </div>
+        </div>
+
+        <!-- Other + packaging + labor -->
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent2);margin-bottom:0.7rem">📦 Остальное</div>
+          <div class="field">
+            <label>Расходники (клей, краска, отделка)</label>
+            <div class="input-wrap">
+              <input type="number" id="consumables" value="0" step="0.05" min="0">
+              <span class="unit">€</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Упаковка (коробка, бумага, лента)</label>
+            <div class="input-wrap">
+              <input type="number" id="packaging" value="3.00" step="0.05" min="0">
+              <span class="unit">€</span>
+            </div>
+          </div>
+          <div style="background:var(--bg);border-radius:6px;padding:0.5rem 0.7rem;margin-top:0.25rem;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:0.75rem;color:var(--muted)">Итого материалы</span>
+            <strong id="materialsTotal" style="font-family:'DM Mono',monospace;font-size:0.9rem;color:var(--accent);font-weight:700">—</strong>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Labor row -->
+      <div style="border-top:1px solid var(--border);padding-top:1rem">
+        <div style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent2);margin-bottom:0.7rem">🖐 Ручной труд</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">
+          <div class="field" style="margin-bottom:0">
+            <label>Часов на изделие</label>
+            <div class="input-wrap">
+              <input type="number" id="hours" value="0.5" step="0.1" min="0">
+              <span class="unit">ч</span>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <label>Ставка в час</label>
+            <div class="input-wrap">
+              <input type="number" id="rate" value="0" step="0.5" min="0">
+              <span class="unit">€</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-end">
+            <div style="background:var(--bg);border-radius:6px;padding:0.5rem 0.7rem;width:100%;display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:0.75rem;color:var(--muted)">Стоимость труда</span>
+              <strong id="laborCalc" style="font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--accent)">—</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Per-unit extras -->
+    <div class="card">
+      <div class="card-title">Прямые затраты на продажу</div>
+
+      <div class="field">
+        <label>Доставка (если включена в цену)</label>
+        <div class="input-wrap">
+          <input type="number" id="shipping" value="0" step="0.5" min="0">
+          <span class="unit">€</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem">
+        <div class="field" style="margin-bottom:0">
+          <label>Целевая маржа (Etsy)</label>
+          <div class="input-wrap">
+            <input type="number" id="targetMargin" value="64" step="5" min="0" max="90">
+            <span class="unit">%</span>
+          </div>
+          <div style="font-size:0.68rem;color:var(--muted);margin-top:0.25rem">доля прибыли от цены</div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Наценка Craftybase ×</label>
+          <div class="input-wrap">
+            <input type="number" id="markupMulti" value="4" step="0.1" min="1" max="10">
+            <span class="unit">×</span>
+          </div>
+          <div style="font-size:0.68rem;color:var(--muted);margin-top:0.25rem">×2.5 = +150% к себест.</div>
+        </div>
+      </div>
+
+      <div class="toggle-row">
+        <span class="toggle-label">IVA включён в цену (recargo)</span>
+        <label class="toggle">
+          <input type="checkbox" id="ivaToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="field" id="ivaField" style="display:none">
+        <label>IVA %</label>
+        <div class="input-wrap">
+          <input type="number" id="ivaPct" value="21" step="1" min="0">
+          <span class="unit">%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Faire / wholesale -->
+    <div class="card">
+      <div class="card-title">Faire · Опт</div>
+
+      <div class="field">
+        <label>Желаемая оптовая маржа</label>
+        <div class="input-wrap">
+          <input type="number" id="wholesaleMargin" value="20" step="5" min="0" max="80">
+          <span class="unit">%</span>
+        </div>
+        <div style="font-size:0.68rem;color:var(--muted);margin-top:0.25rem">норма для опта: 15–30%</div>
+      </div>
+    </div>
+
+    <!-- Etsy fees -->
+    <div class="card">
+      <div class="card-title">Комиссии Etsy</div>
+
+      <div class="field">
+        <label>IRPF (% с чистой прибыли)</label>
+        <div class="input-wrap">
+          <input type="number" id="irpfPct" value="0" step="1" min="0">
+          <span class="unit">%</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FIXED COSTS BLOCK -->
+  <div class="card full-width" style="margin-bottom:1.25rem">
+    <div class="card-title">Фиксированные расходы месяца · не входят в цену товара</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1rem">
+      <div class="field" style="margin-bottom:0">
+        <label>Cuota autónomo</label>
+        <div class="input-wrap">
+          <input type="number" id="cuotaMonth" value="300" step="10" min="0">
+          <span class="unit">€</span>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Etsy Ads / день</label>
+        <div class="input-wrap">
+          <input type="number" id="adsDayBudget" value="3" step="0.5" min="0">
+          <span class="unit">$</span>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Прочие накладные</label>
+        <div class="input-wrap">
+          <input type="number" id="overhead" value="30" step="5" min="0">
+          <span class="unit">€/мес</span>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Patreon / подписки</label>
+        <div class="input-wrap">
+          <input type="number" id="patreon" value="46" step="1" min="0">
+          <span class="unit">€/мес</span>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Etsy+ подписка</label>
+        <div class="input-wrap">
+          <input type="number" id="etsyPlus" value="8.5" step="1" min="0">
+          <span class="unit">€/мес</span>
+        </div>
+        <div style="font-size:0.68rem;color:var(--muted);margin-top:0.25rem">стандарт €8.5/мес</div>
+      </div>
+    </div>
+    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;align-items:end">
+      <div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.3rem">Итого фикс. расходов/мес</div>
+        <div id="fixedTotal" style="font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--accent)">—</div>
+      </div>
+      <div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.3rem">Нужно выручки чтобы покрыть фиксы</div>
+        <div id="breakEvenRevenue" style="font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--accent2)">—</div>
+        <div style="font-size:0.7rem;color:var(--muted);margin-top:0.15rem">при рек. цене товара</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="result-card" id="resultCard">
+    <div class="result-grid">
+      <div class="result-item main">
+        <label>Рекомендуемая цена</label>
+        <div class="value" id="recPrice">—</div>
+        <div class="sub">базовая цена листинга</div>
+      </div>
+      <div class="result-item">
+        <label>Минимальная цена</label>
+        <div class="value" id="minPrice">—</div>
+        <div class="sub">точка безубыточности</div>
+      </div>
+      <div class="result-item">
+        <label>Прибыль с продажи</label>
+        <div class="value" id="netProfit">—</div>
+        <div class="sub">по базовой цене</div>
+      </div>
+    </div>
+
+    <!-- Discount row -->
+    <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,0.12);display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;position:relative;z-index:1">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:0.35rem">Цена в листинге → скидка 15%</div>
+        <div id="price15" style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff">—</div>
+        <div style="margin-top:0.2rem;font-size:0.7rem;color:rgba(255,255,255,0.4)">покупатель платит <span id="after15" style="color:rgba(255,255,255,0.7)">—</span></div>
+      </div>
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:0.35rem">Цена в листинге → скидка 20%</div>
+        <div id="price20" style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff">—</div>
+        <div style="margin-top:0.2rem;font-size:0.7rem;color:rgba(255,255,255,0.4)">покупатель платит <span id="after20" style="color:rgba(255,255,255,0.7)">—</span></div>
+      </div>
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:0.35rem">Прибыль при скидке 20%</div>
+        <div id="profit20" style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--accent2)">—</div>
+        <div id="profit20warn" style="margin-top:0.2rem;font-size:0.7rem;display:none"></div>
+      </div>
+    </div>
+
+    <!-- Craftybase markup row -->
+    <div style="margin-top:1.25rem;padding:1rem 1.25rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;align-items:center">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:0.35rem">📐 Цена по Craftybase (×<span id="markupLabel">2.5</span>)</div>
+        <div id="markupPrice" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff">—</div>
+        <div style="margin-top:0.2rem;font-size:0.7rem;color:rgba(255,255,255,0.35)">себестоимость × множитель</div>
+      </div>
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:0.35rem">Разница с рек. ценой</div>
+        <div id="markupDiff" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--accent2)">—</div>
+      </div>
+      <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);line-height:1.6">
+        Craftybase считает от себестоимости (PLA + свет + расходники + упаковка + труд). Если выше рек. цены — можно поднять.
+      </div>
+    </div>
+
+    <!-- Launch price row -->
+    <div style="margin-top:1.25rem;padding:1rem 1.25rem;background:rgba(255,255,255,0.07);border-radius:10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;align-items:center">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent2);margin-bottom:0.35rem">🚀 Цена на старт магазина</div>
+        <div id="launchPrice" style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--accent2)">—</div>
+        <div style="margin-top:0.2rem;font-size:0.7rem;color:rgba(255,255,255,0.4)">минимальная × 1.15</div>
+      </div>
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:0.35rem">Прибыль по стартовой</div>
+        <div id="launchProfit" style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff">—</div>
+        <div style="margin-top:0.2rem;font-size:0.7rem;color:rgba(255,255,255,0.4)">не в убытке, но скромно</div>
+      </div>
+      <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);line-height:1.5">
+        Первые 3–4 месяца — набираешь отзывы. Когда будет 15–20 отзывов → поднимай до рекомендуемой цены.
+      </div>
+    </div>
+  </div>
+
+  <!-- SET CALCULATOR BLOCK -->
+  <div class="card" style="margin-bottom:1.5rem">
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap">
+      <div style="font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent)">📦 Калькулятор сета</div>
+      <div style="font-size:0.72rem;color:var(--muted)">одинаковые изделия в одной упаковке</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <!-- Quantity -->
+      <div>
+        <label style="font-size:0.68rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:0.3rem">Штук в сете</label>
+        <div style="display:flex;align-items:center;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+          <input type="number" id="setQty" value="2" min="1" max="10" step="1"
+            style="border:none;padding:0.5rem 0.75rem;width:100%;font-family:'DM Mono',monospace;font-size:0.95rem;color:var(--text);background:transparent;outline:none"
+            oninput="calcSet()">
+          <span style="font-size:0.75rem;color:var(--muted);padding-right:0.75rem">шт</span>
+        </div>
+      </div>
+      <!-- Packaging override -->
+      <div>
+        <label style="font-size:0.68rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:0.3rem">Упаковка сета, €</label>
+        <div style="display:flex;align-items:center;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+          <span style="font-size:0.75rem;color:var(--muted);padding-left:0.75rem">€</span>
+          <input type="number" id="setPackaging" value="" placeholder="авто" min="0" step="0.1"
+            style="border:none;padding:0.5rem 0.5rem;width:100%;font-family:'DM Mono',monospace;font-size:0.95rem;color:var(--text);background:transparent;outline:none"
+            oninput="calcSet()">
+        </div>
+        <div style="font-size:0.65rem;color:var(--muted);margin-top:0.2rem">пусто = как у одиночного</div>
+      </div>
+      <!-- Labor override -->
+      <div>
+        <label style="font-size:0.68rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:0.3rem">Доработка сета, мин</label>
+        <div style="display:flex;align-items:center;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+          <input type="number" id="setLaborMin" value="" placeholder="авто" min="0" step="1"
+            style="border:none;padding:0.5rem 0.75rem;width:100%;font-family:'DM Mono',monospace;font-size:0.95rem;color:var(--text);background:transparent;outline:none"
+            oninput="calcSet()">
+          <span style="font-size:0.75rem;color:var(--muted);padding-right:0.75rem">мин</span>
+        </div>
+        <div style="font-size:0.65rem;color:var(--muted);margin-top:0.2rem">пусто = мин одиночного × кол-во</div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div style="background:var(--bg);border-radius:8px;padding:1rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1rem" id="setResults">
+      <div>
+        <div style="font-size:0.65rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.3rem">Себест. сета</div>
+        <div id="setCost" style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--text)">—</div>
+      </div>
+      <div>
+        <div style="font-size:0.65rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.3rem">Рек. цена сета</div>
+        <div id="setRecPrice" style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--accent)">—</div>
+        <div id="setRecPriceNote" style="font-size:0.65rem;color:var(--muted);margin-top:0.15rem"></div>
+      </div>
+      <div>
+        <div style="font-size:0.65rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.3rem">Прибыль</div>
+        <div id="setProfit" style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--green)">—</div>
+      </div>
+      <div>
+        <div style="font-size:0.65rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.3rem">Скидка vs ×шт</div>
+        <div id="setDiscount" style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--accent2)">—</div>
+        <div id="setDiscountSub" style="font-size:0.65rem;color:var(--muted);margin-top:0.15rem"></div>
+        <div style="font-size:0.65rem;color:var(--muted);margin-top:0.1rem">привлекательность для покупателя</div>
+      </div>
+    </div>
+
+    <!-- Скидочные цены листинга -->
+    <div style="margin-top:0.75rem;padding:0.75rem;background:rgba(0,0,0,0.03);border-radius:6px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem" id="setDiscountBlock">
+      <div>
+        <div style="font-size:0.65rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.2rem">Листинг −15%</div>
+        <div id="setListing15" style="font-family:'DM Mono',monospace;font-size:0.95rem;color:var(--text)">—</div>
+        <div id="setAfter15" style="font-size:0.65rem;color:var(--muted);margin-top:0.1rem"></div>
+      </div>
+      <div>
+        <div style="font-size:0.65rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.2rem">Листинг −20%</div>
+        <div id="setListing20" style="font-family:'DM Mono',monospace;font-size:0.95rem;color:var(--text)">—</div>
+        <div id="setAfter20" style="font-size:0.65rem;color:var(--muted);margin-top:0.1rem"></div>
+      </div>
+      <div>
+        <div style="font-size:0.65rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.2rem">Листинг −25%</div>
+        <div id="setListing25" style="font-family:'DM Mono',monospace;font-size:0.95rem;color:var(--text)">—</div>
+        <div id="setAfter25" style="font-size:0.65rem;color:var(--muted);margin-top:0.1rem"></div>
+      </div>
+    </div>
+    <div style="font-size:0.68rem;color:var(--muted);margin-top:0.6rem">
+      💡 Данные берутся из основного калькулятора выше — сначала заполни параметры одного изделия
+    </div>
+  </div>
+
+  <!-- MY PRICE BLOCK -->
+  <div class="breakdown" style="background:#1f1a0f;border-color:#3d3010">
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap">
+      <div style="font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent2)">✏ Моя цена</div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.3)">введи цену которую хочешь поставить</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:180px 1fr;gap:2rem;align-items:start">
+      <!-- Input -->
+      <div>
+        <div style="font-size:0.65rem;color:var(--accent2);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem">Цена листинга</div>
+        <div style="display:flex;align-items:center;background:rgba(255,255,255,0.07);border:1px solid rgba(200,169,110,0.4);border-radius:8px;overflow:hidden">
+          <span style="padding:0 0.75rem;font-size:1.1rem;color:var(--accent2);font-family:'DM Mono',monospace">€</span>
+          <input type="number" id="myPrice" value="" placeholder="0.00" step="0.01" min="0"
+            style="background:transparent;border:none;color:#fff;font-family:'Playfair Display',serif;font-size:1.5rem;padding:0.55rem 0.75rem 0.55rem 0;width:100%;outline:none">
+        </div>
+        <div id="myPriceStatus" style="margin-top:0.6rem;font-size:0.78rem;line-height:1.5;display:none"></div>
+      </div>
+
+      <!-- Results grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem 2rem">
+        <!-- Row 1 -->
+        <div>
+          <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Прибыль с продажи</div>
+          <div id="myProfit" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff">—</div>
+          <div style="font-size:0.65rem;color:rgba(255,255,255,0.3);margin-top:0.1rem">после всех комиссий</div>
+        </div>
+        <div>
+          <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Маржа</div>
+          <div id="myMargin" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff">—</div>
+          <div style="font-size:0.65rem;color:rgba(255,255,255,0.3);margin-top:0.1rem">доля прибыли от цены</div>
+        </div>
+        <div>
+          <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Vs. рекомендуемая</div>
+          <div id="myVsRec" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff">—</div>
+          <div style="font-size:0.65rem;color:rgba(255,255,255,0.3);margin-top:0.1rem">разница с расчётом</div>
+        </div>
+
+        <!-- Row 2: discount section -->
+        <div style="grid-column:1/-1;border-top:1px solid rgba(255,255,255,0.08);padding-top:1rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem 2rem">
+          <div>
+            <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem">Хочешь дать скидку 15%?</div>
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);margin-bottom:0.2rem">Ставь в листинге:</div>
+            <div id="myListing15" style="font-family:'DM Mono',monospace;font-size:1.1rem;color:#fff">—</div>
+            <div style="font-size:0.65rem;color:rgba(255,255,255,0.3);margin-top:0.15rem">покупатель заплатит <span id="myAfter15" style="color:rgba(255,255,255,0.6)">—</span></div>
+          </div>
+          <div>
+            <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem">Хочешь дать скидку 20%?</div>
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);margin-bottom:0.2rem">Ставь в листинге:</div>
+            <div id="myListing20" style="font-family:'DM Mono',monospace;font-size:1.1rem;color:#fff">—</div>
+            <div style="font-size:0.65rem;color:rgba(255,255,255,0.3);margin-top:0.15rem">покупатель заплатит <span id="myAfter20" style="color:rgba(255,255,255,0.6)">—</span></div>
+          </div>
+          <div>
+            <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem">Прибыль при скидке 20%</div>
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);margin-bottom:0.2rem">если продашь по акции:</div>
+            <div id="myProfit20" style="font-family:'DM Mono',monospace;font-size:1.1rem;color:#fff">—</div>
+            <div style="font-size:0.65rem;color:rgba(255,255,255,0.3);margin-top:0.15rem">вместо <span id="myProfitFull" style="color:rgba(255,255,255,0.5)">—</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAIRE WHOLESALE BLOCK -->
+  <div class="breakdown" style="background:#1a1f2e;border-color:#2d3550">
+    <div style="font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:1.2rem">Faire · Оптовые цены</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1.5rem;margin-bottom:1.25rem">
+      <div>
+        <div style="font-size:0.68rem;color:rgba(255,255,255,0.35);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Оптовая цена</div>
+        <div id="wholesalePrice" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff">—</div>
+        <div id="wholesaleSource" style="font-size:0.68rem;color:rgba(255,255,255,0.3);margin-top:0.15rem">≈ розница ÷ 2</div>
+      </div>
+      <div>
+        <div style="font-size:0.68rem;color:rgba(255,255,255,0.35);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Прибыль (Faire 25%)</div>
+        <div id="wholesaleProfitNew" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--accent2)">—</div>
+        <div style="font-size:0.68rem;color:rgba(255,255,255,0.3);margin-top:0.15rem">первый год</div>
+      </div>
+      <div>
+        <div style="font-size:0.68rem;color:rgba(255,255,255,0.35);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Прибыль (Faire 15%)</div>
+        <div id="wholesaleProfitReg" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--accent2)">—</div>
+        <div style="font-size:0.68rem;color:rgba(255,255,255,0.3);margin-top:0.15rem">постоянный бренд</div>
+      </div>
+      <div>
+        <div style="font-size:0.68rem;color:rgba(255,255,255,0.35);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Мин. оптовая цена</div>
+        <div id="wholesaleMin" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff">—</div>
+        <div style="font-size:0.68rem;color:rgba(255,255,255,0.3);margin-top:0.15rem">ниже нельзя (Faire 25%)</div>
+      </div>
+    </div>
+
+    <div style="padding:0.85rem 1rem;background:rgba(255,255,255,0.04);border-radius:8px;display:flex;gap:2rem;flex-wrap:wrap;align-items:center">
+      <div style="font-size:0.75rem;color:rgba(255,255,255,0.4)">
+        📦 Faire платит тебе в течение 30 дней после отгрузки · Магазины получают NET 60
+      </div>
+      <div id="faireWarn" style="font-size:0.75rem;display:none"></div>
+    </div>
+  </div>
+
+  <!-- FAIRE FROM-COST-UP BLOCK -->
+  <div class="breakdown" style="background:#12191f;border-color:#1e3a2f">
+    <div style="display:flex;align-items:baseline;gap:0.75rem;margin-bottom:1.2rem;flex-wrap:wrap">
+      <div style="font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.35)">Faire · От себестоимости вверх</div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.25)">Craftybase-подход: сначала опт — потом розница</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1.5rem;margin-bottom:1.25rem">
+      <div>
+        <div style="font-size:0.68rem;color:rgba(100,220,160,0.6);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Мин. оптовая (б/у)</div>
+        <div id="w2min" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff">—</div>
+        <div style="font-size:0.65rem;color:rgba(255,255,255,0.25);margin-top:0.15rem">себест. ÷ (1 − Faire%)</div>
+      </div>
+      <div>
+        <div style="font-size:0.68rem;color:rgba(100,220,160,0.6);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Рек. оптовая (с маржой)</div>
+        <div id="w2rec" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#4ade80">—</div>
+        <div style="font-size:0.65rem;color:rgba(255,255,255,0.25);margin-top:0.15rem">себест. ÷ (1 − Faire% − маржа%)</div>
+      </div>
+      <div>
+        <div style="font-size:0.68rem;color:rgba(100,220,160,0.6);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Мин. розница Etsy</div>
+        <div id="w2retailMin" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff">—</div>
+        <div style="font-size:0.65rem;color:rgba(255,255,255,0.25);margin-top:0.15rem">мин. опт × 2</div>
+      </div>
+      <div>
+        <div style="font-size:0.68rem;color:rgba(100,220,160,0.6);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Рек. розница Etsy</div>
+        <div id="w2retailRec" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#4ade80">—</div>
+        <div style="font-size:0.65rem;color:rgba(255,255,255,0.25);margin-top:0.15rem">рек. опт × 2</div>
+      </div>
+    </div>
+
+    <div style="padding:0.85rem 1rem;background:rgba(255,255,255,0.03);border-radius:8px;display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:center">
+      <div id="w2compare" style="font-size:0.78rem;color:rgba(255,255,255,0.5);line-height:1.6">—</div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.25);line-height:1.6">
+        Если рек. розница выше текущей рек. цены — это сигнал поднять розницу, чтобы опт тоже был выгодным.
+      </div>
+    </div>
+  </div>
+  <details style="margin-bottom:1.25rem">
+    <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;background:var(--card);border:1px solid var(--border);border-radius:12px;font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent2)">
+      Детализация затрат на единицу товара
+      <span style="font-size:0.65rem;color:var(--muted)">▼</span>
+    </summary>
+    <div class="breakdown" style="border-radius:0 0 12px 12px;border-top:none;margin-top:0">
+
+    <div class="breakdown-row">
+      <span class="label">Пластик PLA</span>
+      <span class="amount" id="bMaterials">—</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="label">Электричество</span>
+      <span class="amount" id="bElec">—</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="label">Расходники</span>
+      <span class="amount" id="bConsumables">—</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="label">Упаковка</span>
+      <span class="amount" id="bPackaging">—</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="label">Ручной труд</span>
+      <span class="amount" id="bLabor">—</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="label">Listing fee</span>
+      <span class="amount" id="bListing">—</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="label">Etsy transaction (6.5%)</span>
+      <span class="amount" id="bTransaction">—</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="label">Payment processing</span>
+      <span class="amount" id="bPayment">—</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="label">Regulatory fee (0.25%)</span>
+      <span class="amount" id="bRegulatory">—</span>
+    </div>
+    <div class="breakdown-row">
+      <span class="label">IRPF (на прибыль с продажи)</span>
+      <span class="amount" id="bIrpf">—</span>
+    </div>
+
+    <div class="breakdown-row total">
+      <span class="label">Минимальная цена (безубыточность)</span>
+      <span class="amount" id="bTotal">—</span>
+    </div>
+
+    <div class="margin-row">
+      <div>
+        <span style="font-size:0.8rem;color:var(--muted)">Реальная маржа с рек. цены:&nbsp;</span>
+        <strong id="realMarginPct" style="font-family:'DM Mono',monospace;font-size:0.85rem">—</strong>
+      </div>
+      <span class="status" id="marginStatus">—</span>
+    </div>
+  </div>
+  </details>
+
+  <!-- BREAKEVEN BLOCK -->
+  <div class="breakdown" style="background:var(--accent);color:#fff;border-color:var(--accent)">
+    <div style="font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:1.2rem">Точка окупаемости месяца</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;margin-bottom:1.2rem">
+      <div>
+        <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Фикс. расходы/мес</div>
+        <div id="beFixed" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff">—</div>
+      </div>
+      <div>
+        <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Прибыль Etsy / шт</div>
+        <div id="beProfitPerUnit" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--accent2)">—</div>
+        <div id="beProfitEtsySub" style="font-size:0.68rem;color:rgba(255,255,255,0.4);margin-top:0.2rem">после комиссий и IRPF</div>
+      </div>
+      <div>
+        <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Прибыль Faire / шт</div>
+        <div id="beProfitFaire" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--accent2)">—</div>
+        <div id="beProfitFaireSub" style="font-size:0.68rem;color:rgba(255,255,255,0.4);margin-top:0.2rem">при рек. оптовой цене</div>
+      </div>
+    </div>
+
+    <div style="padding:1rem;background:rgba(255,255,255,0.07);border-radius:10px;margin-bottom:1rem">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;align-items:end">
+        <div>
+          <div style="font-size:0.68rem;color:rgba(255,255,255,0.45);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem">Продаж Etsy/мес</div>
+          <div style="display:flex;align-items:center;background:rgba(255,255,255,0.1);border-radius:6px;overflow:hidden">
+            <input type="number" id="salesPerMonth" value="20" step="1" min="0" style="background:transparent;border:none;color:#fff;font-family:'DM Mono',monospace;font-size:1rem;padding:0.5rem 0.75rem;width:100%;outline:none">
+            <span style="font-size:0.75rem;color:rgba(255,255,255,0.4);padding-right:0.75rem">шт</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.68rem;color:rgba(255,255,255,0.45);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem">Продаж Faire/мес</div>
+          <div style="display:flex;align-items:center;background:rgba(255,255,255,0.1);border-radius:6px;overflow:hidden">
+            <input type="number" id="faireSalesPerMonth" value="0" step="1" min="0" style="background:transparent;border:none;color:#fff;font-family:'DM Mono',monospace;font-size:1rem;padding:0.5rem 0.75rem;width:100%;outline:none">
+            <span style="font-size:0.75rem;color:rgba(255,255,255,0.4);padding-right:0.75rem">шт</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.68rem;color:rgba(255,255,255,0.45);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem">Нужно Etsy продаж (без опта)</div>
+          <div id="beUnits" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--accent2)">—</div>
+          <div style="font-size:0.65rem;color:rgba(255,255,255,0.35);margin-top:0.1rem">штук/мес чтобы покрыть фиксы</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding-top:1rem;border-top:1px solid rgba(255,255,255,0.15);display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:center">
+      <div id="beStatus" style="font-size:0.82rem;color:rgba(255,255,255,0.8);line-height:1.6">—</div>
+      <div>
+        <div style="font-size:0.68rem;color:rgba(255,255,255,0.4);margin-bottom:0.25rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em">Покрыто фиксов</div>
+        <div id="beCovered" style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff">—</div>
+        <div style="font-size:0.68rem;color:rgba(255,255,255,0.35);margin-top:0.1rem">из <span id="beFixedSmall">—</span> фиксированных расходов</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hint">
+    <strong>Логика калькулятора:</strong> Цена товара считается только из прямых затрат — материалы, труд, упаковка, комиссии Etsy. Cuota autónomo, реклама и подписки — фиксированные расходы, они не зависят от конкретного изделия. Блок «Точка окупаемости» показывает сколько продаж в месяц нужно чтобы эти фиксы покрылись из прибыли.
+  </div>
+
+  <details style="margin-bottom:1.5rem">
+    <summary style="cursor:pointer;font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);padding:0.75rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:8px;list-style:none;display:flex;align-items:center;gap:0.5rem">
+      <span>⚙</span> Технические константы (не трогать)
+      <span style="margin-left:auto;font-size:0.65rem">▼</span>
+    </summary>
+    <div style="background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;padding:1.25rem;display:grid;grid-template-columns:repeat(3,1fr);gap:1rem">
+      <div class="field" style="margin-bottom:0">
+        <label>Мощность принтера</label>
+        <div class="input-wrap">
+          <input type="number" id="printerWatts" value="100" step="10" min="0" disabled>
+          <span class="unit">Вт</span>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Тариф электричества</label>
+        <div class="input-wrap">
+          <input type="number" id="kwPrice" value="0.23" step="0.01" min="0" disabled>
+          <span class="unit">€/кВт</span>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Transaction fee</label>
+        <div class="input-wrap">
+          <input type="number" id="transactionPct" value="6.5" step="0.1" min="0" disabled>
+          <span class="unit">%</span>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Payment processing %</label>
+        <div class="input-wrap">
+          <input type="number" id="paymentPct" value="4" step="0.1" min="0" disabled>
+          <span class="unit">%</span>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Payment processing фикс.</label>
+        <div class="input-wrap">
+          <input type="number" id="paymentFixed" value="0.30" step="0.01" min="0" disabled>
+          <span class="unit">€</span>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Listing fee</label>
+        <div class="input-wrap">
+          <input type="number" id="listingFee" value="0.20" step="0.01" min="0" disabled>
+          <span class="unit">€</span>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Regulatory fee</label>
+        <div class="input-wrap">
+          <input type="number" id="regulatoryPct" value="0.25" step="0.05" min="0" disabled>
+          <span class="unit">%</span>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Faire — новый бренд</label>
+        <div class="input-wrap">
+          <input type="number" id="faireComm" value="25" step="1" min="0" disabled>
+          <span class="unit">%</span>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Faire — постоянный бренд</label>
+        <div class="input-wrap">
+          <input type="number" id="faireCommReg" value="15" step="1" min="0" disabled>
+          <span class="unit">%</span>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <footer>meora home · price calculator · 2026</footer>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  function fmt(n) {
+    return '€' + n.toFixed(2);
+  }
+
+  // ── Multi-part logic ──────────────────────────────────────────────
+  let partCount = 0;
+
+  function addPart(grams = '', hours = '', items = 1) {
+    partCount++;
+    const id = partCount;
+    const div = document.createElement('div');
+    div.id = 'part-' + id;
+    div.style.cssText = 'border:1px solid var(--border);border-radius:6px;padding:0.5rem 0.6rem;margin-bottom:0.4rem;position:relative';
+    div.innerHTML = `
+      <div style="font-size:0.65rem;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:0.3rem;letter-spacing:0.05em">ЧАСТЬ ${id}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:0.3rem;align-items:center">
+        <div class="input-wrap" style="margin:0">
+          <input type="number" id="pg-${id}" value="${grams}" placeholder="г" step="1" min="0" style="border:none;padding:0.35rem 0.5rem;font-size:0.85rem;background:transparent;color:var(--text);outline:none;width:100%;font-family:'DM Mono',monospace" oninput="calc()">
+          <span class="unit" style="font-size:0.7rem">г</span>
+        </div>
+        <div class="input-wrap" style="margin:0">
+          <input type="number" id="ph-${id}" value="${hours}" placeholder="ч" step="0.25" min="0" style="border:none;padding:0.35rem 0.5rem;font-size:0.85rem;background:transparent;color:var(--text);outline:none;width:100%;font-family:'DM Mono',monospace" oninput="calc()">
+          <span class="unit" style="font-size:0.7rem">ч</span>
+        </div>
+        <div class="input-wrap" style="margin:0">
+          <input type="number" id="pi-${id}" value="${items}" placeholder="шт" step="1" min="1" style="border:none;padding:0.35rem 0.5rem;font-size:0.85rem;background:transparent;color:var(--text);outline:none;width:100%;font-family:'DM Mono',monospace" oninput="calc()">
+          <span class="unit" style="font-size:0.7rem">шт</span>
+        </div>
+        <button onclick="removePart(${id})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:0 0.2rem;line-height:1" title="удалить">×</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:0.3rem;margin-top:0.15rem;padding:0 0.1rem">
+        <div style="font-size:0.6rem;color:var(--muted);text-align:center">г пластика</div>
+        <div style="font-size:0.6rem;color:var(--muted);text-align:center">ч печати</div>
+        <div style="font-size:0.6rem;color:var(--muted);text-align:center">шт/пластина</div>
+        <div></div>
+      </div>
+    `;
+    document.getElementById('partsContainer').appendChild(div);
+    calc();
+  }
+
+  function removePart(id) {
+    const el = document.getElementById('part-' + id);
+    if (el) el.remove();
+    calc();
+  }
+
+  function getMultiPartTotals() {
+    const spoolPrice = +$('plaSpoolPriceMulti').value || 0;
+    const printerWatts = +$('printerWatts').value || 100;
+    const kwPrice = +$('kwPrice').value || 0.23;
+    let totalPlaCost = 0, totalElecCost = 0;
+    let i = 1;
+    while (i <= partCount) {
+      const pgEl = document.getElementById('pg-' + i);
+      if (pgEl) {
+        const g = +pgEl.value || 0;
+        const h = +document.getElementById('ph-' + i).value || 0;
+        const items = Math.max(1, +document.getElementById('pi-' + i).value || 1);
+        totalPlaCost += (g / 1000) * spoolPrice / items;
+        totalElecCost += (printerWatts / 1000) * h / items * kwPrice;
+      }
+      i++;
+    }
+    return { totalPlaCost, totalElecCost };
+  }
+
+  // Toggle multi-part mode
+  document.addEventListener('DOMContentLoaded', () => {
+    $('multiPartToggle').addEventListener('change', function() {
+      const on = this.checked;
+      $('singlePartFields').style.display = on ? 'none' : 'block';
+      $('multiPartFields').style.display  = on ? 'block' : 'none';
+      $('singleElecFields').style.display = on ? 'none' : 'block';
+      $('multiElecNote').style.display    = on ? 'block' : 'none';
+      // Add first 2 parts by default when enabling
+      if (on && partCount === 0) { addPart(); addPart(); }
+      calc();
+    });
+
+    // Show PWA hint on iOS Safari if not already installed
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.navigator.standalone === true;
+    const hintDismissed = sessionStorage.getItem('pwaHintDismissed');
+    if (isIOS && !isStandalone && !hintDismissed) {
+      setTimeout(() => {
+        const hint = $('pwaHint');
+        if (hint) {
+          hint.classList.add('show');
+          hint.querySelector('button').addEventListener('click', () => {
+            sessionStorage.setItem('pwaHintDismissed', '1');
+          });
+        }
+      }, 2000);
+    }
+  });
+  // ─────────────────────────────────────────────────────────────────
+
+  let lastRecPrice = 0;
+  let lastDirectCosts = 0;
+
+  function calc() {
+    // PLA + Electricity: single or multi-part
+    const isMulti = $('multiPartToggle').checked;
+    let plaCost, elecCost;
+    if (isMulti) {
+      const t = getMultiPartTotals();
+      plaCost  = t.totalPlaCost;
+      elecCost = t.totalElecCost;
+    } else {
+      const plaGrams      = +$('plaGrams').value || 0;
+      const plaSpoolPrice = +$('plaSpoolPrice').value || 0;
+      const itemsPerPlate = Math.max(1, +$('itemsPerPlate').value || 1);
+      plaCost  = (plaGrams / 1000) * plaSpoolPrice / itemsPerPlate;
+      const printHours   = +$('printHours').value || 0;
+      const printerWatts = +$('printerWatts').value || 0;
+      const kwPrice      = +$('kwPrice').value || 0;
+      elecCost = (printerWatts / 1000) * (printHours / itemsPerPlate) * kwPrice;
+    }
+
+    // Other direct costs
+    const consumables  = +$('consumables').value || 0;
+    const packaging    = +$('packaging').value || 0;
+    const hours        = +$('hours').value || 0;
+    const rate         = +$('rate').value || 0;
+    const labor        = hours * rate;
+    const listing      = +$('listingFee').value || 0;
+    const shipping     = +$('shipping').value || 0;
+
+    // Update material sub-displays
+    $('plaCalc').textContent        = fmt(plaCost);
+    $('elecCalc').textContent       = fmt(elecCost);
+    $('materialsTotal').textContent = fmt(plaCost + elecCost + consumables + packaging);
+    $('laborCalc').textContent      = fmt(labor);
+
+    // Etsy fee rates
+    const txPct   = (+$('transactionPct').value || 0) / 100;
+    const pymtPct = (+$('paymentPct').value || 0) / 100;
+    const pymtFix = +$('paymentFixed').value || 0;
+    const regPct  = (+$('regulatoryPct').value || 0) / 100;
+    const irpfPct = (+$('irpfPct').value || 0) / 100;
+    const targetM = (+$('targetMargin').value || 0) / 100;
+    const useIva  = $('ivaToggle').checked;
+    const ivaPct  = useIva ? (+$('ivaPct').value || 0) / 100 : 0;
+
+    // Direct per-unit costs ONLY (no cuota, no overhead, no ads)
+    const directCosts = plaCost + elecCost + consumables + packaging + labor + listing + shipping;
+
+    // Solve for min price: P*(1 - fees%) = directCosts + pymtFix
+    const priceDep = txPct + pymtPct + regPct + ivaPct;
+
+    // Guard: if fees alone >= 100%, or fees + margin >= 100% — impossible
+    const denomMin = 1 - priceDep;
+    const denomRec = 1 - priceDep - targetM;
+
+    if (denomMin <= 0 || denomRec <= 0) {
+      const msg = denomMin <= 0
+        ? 'Комиссии Etsy превышают 100% — проверь % полей'
+        : `Маржа ${(targetM*100).toFixed(0)}% + комиссии ${(priceDep*100).toFixed(1)}% = ${((targetM+priceDep)*100).toFixed(1)}% — больше 100%, цена не вычисляется`;
+      ['recPrice','minPrice','netProfit','price15','price20','profit20','launchPrice','launchProfit',
+       'markupDiff','wholesalePrice','wholesaleMin','wholesaleProfitNew','wholesaleProfitReg',
+       'w2min','w2rec','w2retailMin','w2retailRec'].forEach(id => {
+        const el = $(id); if (el) el.textContent = '—';
+      });
+      $('recPrice').textContent = '⚠ Ошибка';
+      $('minPrice').textContent = msg;
+      $('minPrice').style.fontSize = '0.75rem';
+      return;
+    }
+    $('minPrice').style.fontSize = '';
+
+    const minPrice = (directCosts + pymtFix) / denomMin;
+    const recPrice = (directCosts + pymtFix) / denomRec;
+    lastRecPrice = recPrice;
+    lastDirectCosts = directCosts;
+
+    // Fees at rec price
+    const txRec   = recPrice * txPct;
+    const pymtRec = recPrice * pymtPct + pymtFix;
+    const regRec  = recPrice * regPct;
+    const totalFeesRec = txRec + pymtRec + regRec;
+    const grossProfit  = recPrice - totalFeesRec - directCosts;
+    const irpfAmt      = grossProfit > 0 ? grossProfit * irpfPct : 0;
+    const netProfit    = grossProfit - irpfAmt;
+    const realMargin   = recPrice > 0 ? (netProfit / recPrice) * 100 : 0;
+
+    // Fixed monthly costs (separate block)
+    const cuotaMonth   = +$('cuotaMonth').value || 0;
+    const adsDayUSD    = +$('adsDayBudget').value || 0;
+    const adsMonth     = adsDayUSD * 30;
+    const overheadMonth= +$('overhead').value || 0;
+    const patreonMonth = +$('patreon').value || 0;
+    const etsyPlus     = +$('etsyPlus').value || 0;
+    const totalFixed   = cuotaMonth + adsMonth + overheadMonth + patreonMonth + etsyPlus;
+
+    // Update main results
+    $('recPrice').textContent  = fmt(recPrice);
+    $('minPrice').textContent  = fmt(minPrice);
+    $('netProfit').textContent = fmt(netProfit);
+
+    // Discount prices: to give X% off and still sell at recPrice,
+    // the listing price must be recPrice / (1 - discount)
+    const listingFor15 = recPrice / 0.85;
+    const listingFor20 = recPrice / 0.80;
+    $('price15').textContent = fmt(listingFor15);
+    $('price20').textContent = fmt(listingFor20);
+    $('after15').textContent = fmt(recPrice);
+    $('after20').textContent = fmt(recPrice);
+
+    // Profit if buyer gets 20% off (they pay recPrice * 0.8, but our costs stay same)
+    const salePrice20 = recPrice * 0.80;
+    const txSale20    = salePrice20 * txPct;
+    const pymtSale20  = salePrice20 * pymtPct + pymtFix;
+    const regSale20   = salePrice20 * regPct;
+    const grossSale20 = salePrice20 - txSale20 - pymtSale20 - regSale20 - directCosts;
+    const irpfSale20  = grossSale20 > 0 ? grossSale20 * irpfPct : 0;
+    const netSale20   = grossSale20 - irpfSale20;
+    $('profit20').textContent = fmt(netSale20);
+    const warn20 = $('profit20warn');
+    if (netSale20 < 0) {
+      warn20.style.display = 'block';
+      warn20.style.color = '#ff9999';
+      warn20.textContent = '⚠ убыток с продажи';
+    } else if (netSale20 < netProfit * 0.3) {
+      warn20.style.display = 'block';
+      warn20.style.color = 'rgba(255,200,100,0.9)';
+      warn20.textContent = 'маржа сильно падает';
+    } else {
+      warn20.style.display = 'none';
+    }
+
+    // Launch price (min × 1.15)
+    const launchPrice = minPrice * 1.15;
+    const txLaunch    = launchPrice * txPct;
+    const pymtLaunch  = launchPrice * pymtPct + pymtFix;
+    const regLaunch   = launchPrice * regPct;
+    const grossLaunch = launchPrice - txLaunch - pymtLaunch - regLaunch - directCosts;
+    const irpfLaunch  = grossLaunch > 0 ? grossLaunch * irpfPct : 0;
+    const netLaunch   = grossLaunch - irpfLaunch;
+    $('launchPrice').textContent  = fmt(launchPrice);
+    $('launchProfit').textContent = fmt(netLaunch);
+    $('bMaterials').textContent    = fmt(plaCost);
+    $('bElec').textContent         = fmt(elecCost);
+    $('bConsumables').textContent  = fmt(consumables);
+    $('bPackaging').textContent    = fmt(packaging);
+    $('bLabor').textContent        = fmt(labor) + ` (${hours}h × €${rate})`;
+    $('bListing').textContent      = fmt(listing);
+    $('bTransaction').textContent  = fmt(txRec);
+    $('bPayment').textContent      = fmt(pymtRec);
+    $('bRegulatory').textContent   = fmt(regRec);
+    $('bIrpf').textContent         = fmt(irpfAmt);
+    $('bTotal').textContent        = fmt(minPrice);
+
+    $('realMarginPct').textContent = realMargin.toFixed(1) + '%';
+    const st = $('marginStatus');
+    if (realMargin >= 35) { st.textContent = '✓ Хорошая маржа'; st.className = 'status ok'; }
+    else if (realMargin >= 20) { st.textContent = '⚠ Приемлемо'; st.className = 'status warn'; }
+    else { st.textContent = '✗ Слишком мало'; st.className = 'status bad'; }
+
+    // Craftybase markup price (applied to COGS: materials + labor, no Etsy fees)
+    const cogs        = plaCost + elecCost + consumables + packaging + labor;
+    const markupMulti = +$('markupMulti').value || 4;
+    const markupPrice = cogs * markupMulti;
+    const markupDiff  = markupPrice - recPrice;
+    $('markupLabel').textContent = markupMulti;
+    $('markupPrice').textContent = fmt(markupPrice);
+    $('markupDiff').textContent  = (markupDiff >= 0 ? '+' : '') + fmt(markupDiff);
+    $('markupDiff').style.color  = markupDiff >= 0 ? 'var(--accent2)' : '#ff9999';
+
+    // Faire wholesale prices
+    const faireCommNew = (+$('faireComm').value || 25) / 100;
+    const faireCommReg = (+$('faireCommReg').value || 15) / 100;
+    // Use manually entered price if available, otherwise recommended price
+    const myPriceVal = +$('myPrice').value || 0;
+    const retailForFaire = myPriceVal > 0 ? myPriceVal : recPrice;
+    // Traditional rule: wholesale = retail / 2
+    const wholesalePrice = retailForFaire / 2;
+    // Min wholesale so we break even after Faire 25% commission
+    const wholesaleMin = directCosts / (1 - faireCommNew);
+    const profitWholesaleNew = wholesalePrice * (1 - faireCommNew) - directCosts;
+    const profitWholesaleReg = wholesalePrice * (1 - faireCommReg) - directCosts;
+
+    $('wholesalePrice').textContent     = fmt(wholesalePrice);
+    $('wholesaleMin').textContent       = fmt(wholesaleMin);
+    $('wholesaleProfitNew').textContent = fmt(profitWholesaleNew);
+    $('wholesaleProfitReg').textContent = fmt(profitWholesaleReg);
+    $('wholesaleProfitNew').style.color = profitWholesaleNew >= 0 ? 'var(--accent2)' : '#ff9999';
+    $('wholesaleProfitReg').style.color = profitWholesaleReg >= 0 ? 'var(--accent2)' : '#ff9999';
+
+    // Label: show which price is being used
+    const wholesaleSource = $('wholesaleSource');
+    if (wholesaleSource) {
+      wholesaleSource.textContent = myPriceVal > 0
+        ? `≈ моя цена (${fmt(myPriceVal)}) ÷ 2`
+        : `≈ рек. цена (${fmt(recPrice)}) ÷ 2`;
+    }
+
+    const fw = $('faireWarn');
+    if (wholesalePrice < wholesaleMin) {
+      fw.style.display = 'block';
+      fw.style.color   = '#ff9999';
+      fw.textContent   = `⚠ Розничная цена слишком низкая — оптовая (розница ÷ 2) не покроет себестоимость + Faire 25%. Нужна мин. оптовая: ${fmt(wholesaleMin)}`;
+    } else {
+      fw.style.display = 'none';
+    }
+
+    // Faire from-cost-up (Craftybase approach)
+    // Min wholesale: covers directCosts after Faire commission, zero profit
+    const w2min     = directCosts / (1 - faireCommNew);
+    // Rec wholesale: covers directCosts + desired wholesale margin after Faire
+    const wMargin   = (+$('wholesaleMargin').value || 20) / 100;
+    const w2rec     = directCosts / (1 - faireCommNew - wMargin);
+    // Retail = wholesale × 2
+    const w2retailMin = w2min * 2;
+    const w2retailRec = w2rec * 2;
+
+    $('w2min').textContent       = fmt(w2min);
+    $('w2rec').textContent       = fmt(w2rec);
+    $('w2retailMin').textContent = fmt(w2retailMin);
+    $('w2retailRec').textContent = fmt(w2retailRec);
+
+    const w2cmp = $('w2compare');
+    const diff  = w2retailRec - recPrice;
+    if (diff > 0.01) {
+      w2cmp.style.color = '#fbbf24';
+      w2cmp.innerHTML = `⚠ Текущая розничная цена <strong style="color:#fff">${fmt(recPrice)}</strong> ниже рекомендуемой для опта <strong style="color:#4ade80">${fmt(w2retailRec)}</strong>.<br>Чтобы Faire был выгодным, рознице нужно быть минимум <strong style="color:#4ade80">${fmt(w2retailMin)}</strong>.`;
+    } else {
+      w2cmp.style.color = '#4ade80';
+      w2cmp.innerHTML = `✓ Розничная цена <strong style="color:#fff">${fmt(recPrice)}</strong> позволяет работать с Faire без убытка. Оптовая начинается от <strong style="color:#fff">${fmt(w2min)}</strong>.`;
+    }
+
+    // Breakeven block
+    const salesNow      = +$('salesPerMonth').value || 0;
+    const faireSalesNow = +$('faireSalesPerMonth').value || 0;
+
+    // Use myPrice if filled, otherwise recPrice
+    const myPriceVal2 = +$('myPrice').value || 0;
+    const etsyPriceForBE = myPriceVal2 > 0 ? myPriceVal2 : recPrice;
+
+    // Recalculate Etsy profit per unit at chosen price
+    const txBE    = etsyPriceForBE * txPct;
+    const pymtBE  = etsyPriceForBE * pymtPct + pymtFix;
+    const regBE   = etsyPriceForBE * regPct;
+    const grossBE = etsyPriceForBE - txBE - pymtBE - regBE - directCosts;
+    const irpfBE  = grossBE > 0 ? grossBE * irpfPct : 0;
+    const netProfitBE = grossBE - irpfBE;
+
+    // Faire: use myPrice/2 if myPrice filled, else w2rec
+    const fairePriceForBE = myPriceVal2 > 0 ? myPriceVal2 / 2 : w2rec;
+    const faireProfitPerUnit = fairePriceForBE * (1 - faireCommNew) - directCosts;
+
+    // Total profit from Faire sales this month
+    const faireProfitMonth = faireProfitPerUnit * faireSalesNow;
+
+    // Remaining fixed costs to cover after Faire contribution
+    const fixedAfterFaire = totalFixed - faireProfitMonth;
+
+    // Etsy units needed to cover what's left
+    const beUnits = netProfitBE > 0 ? Math.ceil(Math.max(0, fixedAfterFaire) / netProfitBE) : Infinity;
+
+    // Total covered this month from both channels
+    const totalCovered = netProfitBE * salesNow + faireProfitPerUnit * faireSalesNow;
+
+    $('fixedTotal').textContent       = fmt(totalFixed);
+    $('beFixed').textContent          = fmt(totalFixed);
+    $('beProfitPerUnit').textContent  = fmt(netProfitBE);
+    $('beProfitFaire').textContent    = fmt(faireProfitPerUnit);
+    $('beProfitFaire').style.color    = faireProfitPerUnit >= 0 ? 'var(--accent2)' : '#ff9999';
+    $('beUnits').textContent          = isFinite(beUnits) ? beUnits + ' шт' : '∞';
+    $('beCovered').textContent        = fmt(Math.min(totalCovered, totalFixed));
+    $('beFixedSmall').textContent     = fmt(totalFixed);
+    const beUnitsForRevenue = netProfitBE > 0 ? Math.ceil(Math.max(0, fixedAfterFaire) / netProfitBE) : 0;
+    $('breakEvenRevenue').textContent = fmt(etsyPriceForBE * beUnitsForRevenue);
+
+    // Update subtitles to show which price is used
+    const priceLabel = myPriceVal2 > 0 ? `моя цена ${fmt(myPriceVal2)}` : `рек. цена ${fmt(recPrice)}`;
+    const fairePriceLabel = myPriceVal2 > 0 ? `моя цена ÷ 2 = ${fmt(fairePriceForBE)}` : `рек. оптовая ${fmt(w2rec)}`;
+    $('beProfitEtsySub').textContent  = `при ${priceLabel}`;
+    $('beProfitFaireSub').textContent = `при ${fairePriceLabel}`;
+
+    const beSt = $('beStatus');
+    if (!isFinite(beUnits)) {
+      beSt.innerHTML = '✗ Цена слишком низкая — прибыль с единицы ≤ 0';
+      beSt.style.color = '#ff9999';
+    } else if (totalCovered >= totalFixed) {
+      beSt.innerHTML = `✓ Фиксы покрыты: <strong style="color:#fff">${salesNow} Etsy</strong> + <strong style="color:#4ade80">${faireSalesNow} Faire</strong>`;
+      beSt.style.color = 'rgba(100,220,160,0.9)';
+    } else {
+      const gap = totalFixed - totalCovered;
+      beSt.innerHTML = `✗ Не хватает <strong style="color:#fff">${fmt(gap)}</strong> · нужно ещё <strong style="color:var(--accent2)">${beUnits} шт Etsy</strong>${faireSalesNow > 0 ? ` (с учётом ${faireSalesNow} шт Faire)` : ''}`;
+      beSt.style.color = 'rgba(255,180,0,0.9)';
+    }
+    calcMyPrice();
+  }
+
+  // IVA toggle
+  $('ivaToggle').addEventListener('change', () => {
+    $('ivaField').style.display = $('ivaToggle').checked ? 'block' : 'none';
+    calc();
+  });
+
+  // My price block
+  function calcMyPrice() {
+    const p = parseFloat($('myPrice').value);
+    if (!p || p <= 0) {
+      ['myProfit','myMargin','myVsRec','myAfter15','myAfter20','myProfit20'].forEach(id => $(id).textContent = '—');
+      ['myProfit','myMargin','myVsRec','myAfter15','myAfter20','myProfit20'].forEach(id => $(id).style.color = '');
+      $('myPriceStatus').style.display = 'none';
+      return;
+    }
+
+    const txPct   = (+$('transactionPct').value || 0) / 100;
+    const pymtPct = (+$('paymentPct').value || 0) / 100;
+    const pymtFix = +$('paymentFixed').value || 0;
+    const regPct  = (+$('regulatoryPct').value || 0) / 100;
+    const irpfPct = (+$('irpfPct').value || 0) / 100;
+
+    const directCosts = lastDirectCosts;
+
+    const tx    = p * txPct;
+    const pymt  = p * pymtPct + pymtFix;
+    const reg   = p * regPct;
+    const gross = p - tx - pymt - reg - directCosts;
+    const irpf  = gross > 0 ? gross * irpfPct : 0;
+    const net   = gross - irpf;
+    const margin = p > 0 ? (net / p * 100) : 0;
+
+    $('myProfit').textContent = fmt(net);
+    $('myProfit').style.color = net >= 0 ? 'var(--accent2)' : '#ff9999';
+
+    $('myMargin').textContent = margin.toFixed(1) + '%';
+    $('myMargin').style.color = margin >= 30 ? '#4ade80' : margin >= 15 ? 'var(--accent2)' : '#ff9999';
+
+    const diff = p - lastRecPrice;
+    $('myVsRec').textContent = (diff >= 0 ? '+' : '') + fmt(diff);
+    $('myVsRec').style.color = diff >= 0 ? '#4ade80' : 'rgba(255,200,100,0.9)';
+
+    $('myAfter15').textContent = fmt(p);
+    $('myAfter20').textContent = fmt(p);
+    $('myListing15').textContent = fmt(p / 0.85);
+    $('myListing20').textContent = fmt(p / 0.80);
+
+    const p20   = p * 0.80;
+    const net20 = p20 - p20*txPct - (p20*pymtPct+pymtFix) - p20*regPct - directCosts;
+    const net20f = net20 - (net20 > 0 ? net20*irpfPct : 0);
+    $('myProfit20').textContent = fmt(net20f);
+    $('myProfit20').style.color = net20f >= 0 ? 'rgba(255,255,255,0.7)' : '#ff9999';
+    $('myProfitFull').textContent = fmt(net);
+
+    const st = $('myPriceStatus');
+    const minP = lastDirectCosts > 0 ? lastDirectCosts / (1 - 0.108) : 0; // approx
+    st.style.display = 'block';
+    if (net < 0) {
+      st.innerHTML = `⚠ Продажа в убыток — прибыль ${fmt(net)}`;
+      st.style.color = '#ff9999';
+    } else if (margin < 20) {
+      st.innerHTML = `⚠ Маржа ${margin.toFixed(1)}% — ниже рекомендуемых 20%`;
+      st.style.color = 'rgba(255,200,100,0.9)';
+    } else {
+      st.innerHTML = `✓ Цена рабочая · маржа ${margin.toFixed(1)}%`;
+      st.style.color = '#4ade80';
+    }
+  }
+
+  $('myPrice').addEventListener('input', () => { calcMyPrice(); calc(); });
+
+  function calcSet() {
+    const qty = +$('setQty').value || 1;
+
+    // Read raw inputs using correct IDs
+    const plaGrams   = +$('plaGrams').value      || 0;
+    const plaPrice   = +$('plaSpoolPrice').value  || 23;
+    const printHours = +$('printHours').value     || 0;
+    const laborHours = +$('hours').value          || 0.25;
+    const laborRate  = +$('rate').value           || 0;
+    const packaging  = +$('packaging').value      || 3;
+    const extras     = +$('consumables').value    || 0;
+
+    // Per-unit core costs: single or multi-part
+    let matCost, elecCost;
+    if ($('multiPartToggle').checked) {
+      const t = getMultiPartTotals();
+      matCost  = t.totalPlaCost;
+      elecCost = t.totalElecCost;
+    } else {
+      const printerWatts  = +$('printerWatts').value || 100;
+      const kwPrice       = +$('kwPrice').value      || 0.23;
+      const itemsPerPlate = Math.max(1, +$('itemsPerPlate').value || 1);
+      matCost  = plaGrams / 1000 * plaPrice / itemsPerPlate;
+      elecCost = (printerWatts / 1000) * (printHours / itemsPerPlate) * kwPrice;
+    }
+    const unitCoreCost = matCost + elecCost + extras;
+
+    // Set-level packaging: override or same as single
+    const setPackagingVal = $('setPackaging').value !== '' ? +$('setPackaging').value : packaging;
+
+    // Set-level labor: override (in minutes) or per-unit hours × qty
+    const singleLaborCost = laborHours * laborRate;
+    let setLaborCost;
+    if ($('setLaborMin').value !== '') {
+      setLaborCost = (+$('setLaborMin').value / 60) * laborRate;
+    } else {
+      setLaborCost = singleLaborCost * qty;
+    }
+
+    // Total set cost — no overhead multiplier (overhead is monthly fixed, same as main calc)
+    const setTotalCost = unitCoreCost * qty + setPackagingVal + setLaborCost;
+
+    // Fee constants (correct IDs)
+    const txPct    = (+$('transactionPct').value  || 6.5)  / 100;
+    const pymtPct  = (+$('paymentPct').value      || 4)    / 100;
+    const pymtFix  = +$('paymentFixed').value     || 0.30;
+    const regPct   = (+$('regulatoryPct').value   || 0.25) / 100;
+    const listFee  = +$('listingFee').value       || 0.20;
+    const markupPct = (+$('targetMargin').value   || 64)   / 100;
+    const irpfPct  = (+$('irpfPct').value         || 0)    / 100;
+
+    // Gross margin needed to cover fees + markup
+    const denominator = 1 - txPct - pymtPct - regPct - markupPct;
+    const setRecPrice = denominator > 0 ? (setTotalCost + listFee + pymtFix) / denominator : 0;
+
+    // Net profit at set price
+    const tx   = setRecPrice * txPct;
+    const pymt = setRecPrice * pymtPct + pymtFix;
+    const reg  = setRecPrice * regPct;
+    const gross = setRecPrice - tx - pymt - reg - setTotalCost;
+    const irpf  = gross > 0 ? gross * irpfPct : 0;
+    const setNetProfit = gross - irpf;
+
+    // Single item price for comparison: myPrice if filled, else recPrice
+    const myPriceVal = +$('myPrice').value || 0;
+    const singlePrice = myPriceVal > 0 ? myPriceVal : (lastRecPrice || 0);
+    const priceSource = myPriceVal > 0 ? 'моя цена' : 'рек. цена';
+    const multiplePrice = singlePrice * qty;
+    const saving = multiplePrice > 0 ? (1 - setRecPrice / multiplePrice) * 100 : 0;
+
+    // Format
+    const f = v => '€' + v.toFixed(2);
+
+    $('setCost').textContent = f(setTotalCost);
+    $('setRecPrice').textContent = f(setRecPrice);
+    $('setRecPriceNote').textContent = `≈ €${(setRecPrice / qty).toFixed(2)}/шт`;
+    $('setProfit').textContent = f(setNetProfit);
+    $('setProfit').style.color = setNetProfit >= 0 ? 'var(--green)' : 'var(--red)';
+
+    if (saving > 0) {
+      $('setDiscount').textContent = `−${saving.toFixed(0)}%`;
+      $('setDiscount').title = `vs ${priceSource} ${f(singlePrice)} × ${qty}`;
+      $('setDiscount').style.color = 'var(--accent2)';
+    } else if (saving < 0) {
+      $('setDiscount').textContent = `+${Math.abs(saving).toFixed(0)}% дороже`;
+      $('setDiscount').style.color = 'var(--muted)';
+    } else {
+      $('setDiscount').textContent = '—';
+    }
+
+    // Подпись под скидкой — от какой цены считается
+    const discountSub = $('setDiscountSub');
+    if (discountSub) {
+      discountSub.textContent = multiplePrice > 0
+        ? `vs ${qty}× ${priceSource} (${f(multiplePrice)})`
+        : '';
+    }
+
+    // Discount listing prices
+    $('setListing15').textContent = f(setRecPrice / 0.85);
+    $('setAfter15').textContent   = `покупатель платит ${f(setRecPrice)}`;
+    $('setListing20').textContent = f(setRecPrice / 0.80);
+    $('setAfter20').textContent   = `покупатель платит ${f(setRecPrice)}`;
+    $('setListing25').textContent = f(setRecPrice / 0.75);
+    $('setAfter25').textContent   = `покупатель платит ${f(setRecPrice)}`;
+  }
+
+  // Auto-recalc on any input
+  document.querySelectorAll('input[type="number"]').forEach(el => {
+    el.addEventListener('input', calc);
+  });
+
+  // Also recalc set when main inputs change
+  document.querySelectorAll('input[type="number"]').forEach(el => {
+    el.addEventListener('input', calcSet);
+  });
+
+  // Init
+  calc();
+  calcSet();
+
+</script>
+<!-- PWA Setup -->
+<script>
+(function() {
+  // Generate icon via canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = 512; canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#2d4a3e';
+  // Rounded rect
+  const r = 100;
+  ctx.beginPath();
+  ctx.moveTo(r, 0); ctx.lineTo(512-r, 0);
+  ctx.quadraticCurveTo(512, 0, 512, r);
+  ctx.lineTo(512, 512-r);
+  ctx.quadraticCurveTo(512, 512, 512-r, 512);
+  ctx.lineTo(r, 512);
+  ctx.quadraticCurveTo(0, 512, 0, 512-r);
+  ctx.lineTo(0, r);
+  ctx.quadraticCurveTo(0, 0, r, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  // € symbol
+  ctx.fillStyle = '#c8a96e';
+  ctx.font = 'bold 280px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('€', 256, 270);
+
+  // Small M
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '80px sans-serif';
+  ctx.fillText('meora', 256, 430);
+
+  const iconUrl = canvas.toDataURL('image/png');
+
+  // Set apple touch icon
+  document.getElementById('appleTouchIcon').href = iconUrl;
+
+  // Inline manifest
+  const manifest = {
+    name: 'Meora · Калькулятор цены',
+    short_name: 'Meora Цена',
+    description: 'Калькулятор цены для Etsy — Meora Home',
+    start_url: '/calculator.html',
+    display: 'standalone',
+    background_color: '#f5f0ea',
+    theme_color: '#2d4a3e',
+    orientation: 'portrait',
+    icons: [
+      { src: iconUrl, sizes: '512x512', type: 'image/png' },
+      { src: iconUrl, sizes: '192x192', type: 'image/png' }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+  document.getElementById('manifestLink').href = URL.createObjectURL(blob);
+
+  // Service Worker для офлайн (кешируем страницу)
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      const CACHE = 'meora-v1';
+      self.addEventListener('install', e => {
+        e.waitUntil(caches.open(CACHE).then(c => c.addAll(['.'])));
+      });
+      self.addEventListener('fetch', e => {
+        e.respondWith(
+          caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('.')))
+        );
+      });
+    `;
+    const swBlob = new Blob([swCode], {type: 'application/javascript'});
+    const swUrl = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swUrl).catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
