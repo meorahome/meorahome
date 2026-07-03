@@ -42,7 +42,7 @@ Words with capitalized initial letters have meanings defined under the following
 - **Third-Party Services:** External platforms and APIs integrated with the App, including Google Drive, Google Sheets, and Pinterest API.
 - **Personal Data:** Any information that relates to an identified or identifiable individual.
 - **Processing:** Any operation performed on data, including collection, storage, modification, transfer, or deletion.
-- **You/User:** Any individual whose data may be processed through the App's operations, including visitors to content published via the App.
+- **You/User:** Any individual whose data may be processed through the App's operations, including visitors to content published via the App. 
 
 ## Purpose of the App
 
