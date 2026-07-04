@@ -22,7 +22,7 @@ Meora Home is an Etsy shop specializing in 3D printed home decor made from eco-f
 🛒 **Shop:** https://www.etsy.com/shop/MeoraHome
    
 ---
-
+    
 # Privacy Policy for Meora Home Manager
 
 **Last updated: February 16, 2026**
