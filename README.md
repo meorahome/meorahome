@@ -20,7 +20,7 @@ Meora Home Manager streamlines the content preparation process for promoting han
 Meora Home is an Etsy shop specializing in 3D printed home decor made from eco-friendly PLA bioplastic — trays, dishes, bowls, and decorative items.
 
 🛒 **Shop:** https://www.etsy.com/shop/MeoraHome
-
+   
 ---
 
 # Privacy Policy for Meora Home Manager
