@@ -750,7 +750,7 @@
       <div style="font-size:0.72rem;color:var(--muted)">одинаковые изделия в одной упаковке</div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1rem;margin-bottom:1rem">
       <!-- Quantity -->
       <div>
         <label style="font-size:0.68rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:0.3rem">Штук в сете</label>
@@ -782,6 +782,17 @@
           <span style="font-size:0.75rem;color:var(--muted);padding-right:0.75rem">мин</span>
         </div>
         <div style="font-size:0.65rem;color:var(--muted);margin-top:0.2rem">пусто = мин одиночного × кол-во</div>
+      </div>
+      <!-- Shipping override -->
+      <div>
+        <label style="font-size:0.68rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:0.3rem">Доставка сета, €</label>
+        <div style="display:flex;align-items:center;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+          <span style="font-size:0.75rem;color:var(--muted);padding-left:0.75rem">€</span>
+          <input type="number" id="setShipping" value="" placeholder="авто" min="0" step="0.1"
+            style="border:none;padding:0.5rem 0.5rem;width:100%;font-family:'DM Mono',monospace;font-size:0.95rem;color:var(--text);background:transparent;outline:none"
+            oninput="calcSet()">
+        </div>
+        <div style="font-size:0.65rem;color:var(--muted);margin-top:0.2rem">пусто = как у одиночного (сет тяжелее — уточни!)</div>
       </div>
     </div>
 
@@ -1859,27 +1870,35 @@
       setLaborCost = singleLaborCost * qty;
     }
 
-    // Total set cost: materials × qty + one packaging + labor
-    const setTotalCost = unitCoreCost * qty + setPackagingVal + setLaborCost;
+    // Set-level shipping: one shipment for whole set (override or single shipping value)
+    const singleShipping = +$('shipping').value || 0;
+    const setShippingVal = $('setShipping').value !== '' ? +$('setShipping').value : singleShipping;
+
+    // Total set cost: materials × qty + one packaging + labor + one shipment
+    const setTotalCost = unitCoreCost * qty + setPackagingVal + setLaborCost + setShippingVal;
 
     // Fee constants (correct IDs)
     const txPct    = (+$('transactionPct').value  || 6.5)  / 100;
     const pymtPct  = (+$('paymentPct').value      || 4)    / 100;
     const pymtFix  = +$('paymentFixed').value     || 0.30;
-    const regPct   = (+$('regulatoryPct').value   || 0.25) / 100;
+    const regPct   = (+$('regulatoryPct').value   || 0.88) / 100;
     const listFee  = +$('listingFee').value       || 0.20;
     const markupPct = (+$('targetMargin').value   || 64)   / 100;
     const irpfPct  = (+$('irpfPct').value         || 0)    / 100;
+    const useIvaSet = $('ivaToggle').checked;
+    const ivaPctSet = useIvaSet ? (+$('ivaPct').value || 0) / 100 : 0;
+    const ivaShareSet = ivaPctSet > 0 ? ivaPctSet / (1 + ivaPctSet) : 0;
 
-    // Gross margin needed to cover fees + markup
-    const denominator = 1 - txPct - pymtPct - regPct - markupPct;
+    // Gross margin needed to cover fees + IVA + markup
+    const denominator = 1 - txPct - pymtPct - regPct - ivaShareSet - markupPct;
     const setRecPrice = denominator > 0 ? (setTotalCost + listFee + pymtFix) / denominator : 0;
 
     // Net profit at set price
     const tx   = setRecPrice * txPct;
     const pymt = setRecPrice * pymtPct + pymtFix;
     const reg  = setRecPrice * regPct;
-    const gross = setRecPrice - tx - pymt - reg - setTotalCost;
+    const ivaSet = setRecPrice * ivaShareSet;
+    const gross = setRecPrice - tx - pymt - reg - ivaSet - setTotalCost;
     const irpf  = gross > 0 ? gross * irpfPct : 0;
     const setNetProfit = gross - irpf;
 
