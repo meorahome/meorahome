@@ -597,7 +597,7 @@
 
           <!-- Multi-part: elec is summed from parts -->
           <div id="multiElecNote" style="display:none;font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;padding:0.5rem 0;line-height:1.5">
-            Время печати суммируется<br>из всех частей слева
+            Время печати суммируется<br>из всех частей слева.<br><span style="color:var(--accent2)">× попыток</span> = сколько раз<br>деталь печаталась ради 1 годной
           </div>
 
           <div style="background:var(--bg);border-radius:6px;padding:0.5rem 0.7rem;margin-top:0.25rem;display:flex;justify-content:space-between;align-items:center">
@@ -676,7 +676,8 @@
       <div class="result-item main">
         <label>Рекомендуемая цена</label>
         <div class="value" id="recPrice">—</div>
-        <div class="sub">базовая цена листинга</div>
+        <div class="sub">в листинг · уже с запасом под скидку 20%</div>
+        <div class="sub">после −20% покупатель платит <span id="recPayAfter" style="color:rgba(255,255,255,0.75)">—</span></div>
       </div>
       <div class="result-item">
         <label>Минимальная цена</label>
@@ -686,7 +687,7 @@
       <div class="result-item">
         <label>Прибыль с продажи</label>
         <div class="value" id="netProfit">—</div>
-        <div class="sub">по базовой цене</div>
+        <div class="sub">по цене после скидки 20%</div>
       </div>
     </div>
 
@@ -698,13 +699,14 @@
         <div style="margin-top:0.2rem;font-size:0.7rem;color:rgba(255,255,255,0.4)">покупатель платит <span id="after15" style="color:rgba(255,255,255,0.7)">—</span></div>
       </div>
       <div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:0.35rem">Цена в листинге → скидка 20%</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:0.35rem">Цена в листинге → скидка 25%</div>
         <div id="price20" style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff">—</div>
         <div style="margin-top:0.2rem;font-size:0.7rem;color:rgba(255,255,255,0.4)">покупатель платит <span id="after20" style="color:rgba(255,255,255,0.7)">—</span></div>
       </div>
       <div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:0.35rem">Прибыль при скидке 20%</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:0.35rem">Прибыль без скидки</div>
         <div id="profit20" style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--accent2)">—</div>
+        <div style="margin-top:0.2rem;font-size:0.7rem;color:rgba(255,255,255,0.4)">если купят по полной цене листинга</div>
         <div id="profit20warn" style="margin-top:0.2rem;font-size:0.7rem;display:none"></div>
       </div>
     </div>
@@ -877,7 +879,7 @@
         <div>
           <div style="font-size:0.62rem;color:rgba(255,255,255,0.35);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">Vs. рекомендуемая</div>
           <div id="myVsRec" style="font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff">—</div>
-          <div style="font-size:0.65rem;color:rgba(255,255,255,0.3);margin-top:0.1rem">разница с расчётом</div>
+          <div style="font-size:0.65rem;color:rgba(255,255,255,0.3);margin-top:0.1rem">разница с рек. листингом</div>
         </div>
 
         <!-- Row 2: discount section -->
@@ -1347,7 +1349,7 @@
   // ── Multi-part logic ──────────────────────────────────────────────
   let partCount = 0;
 
-  function addPart(grams = '', hours = '', items = 1) {
+  function addPart(grams = '', hours = '', items = 1, attempts = 1) {
     partCount++;
     const id = partCount;
     const div = document.createElement('div');
@@ -1355,30 +1357,36 @@
     div.style.cssText = 'border:1px solid var(--border);border-radius:6px;padding:0.5rem 0.6rem;margin-bottom:0.4rem;position:relative';
     div.innerHTML = `
       <div style="font-size:0.65rem;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:0.3rem;letter-spacing:0.05em">ЧАСТЬ ${id}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:0.3rem;align-items:center">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:0.3rem;align-items:center">
         <div class="input-wrap" style="margin:0">
-          <input type="number" id="pg-${id}" value="${grams}" placeholder="г" step="1" min="0" style="border:none;padding:0.35rem 0.5rem;font-size:0.85rem;background:transparent;color:var(--text);outline:none;width:100%;font-family:'DM Mono',monospace" oninput="calc()">
+          <input type="number" id="pg-${id}" value="${grams}" placeholder="г" step="1" min="0" style="border:none;padding:0.35rem 0.5rem;font-size:0.85rem;background:transparent;color:var(--text);outline:none;width:100%;font-family:'DM Mono',monospace" oninput="calc();calcSet()">
           <span class="unit" style="font-size:0.7rem">г</span>
         </div>
         <div class="input-wrap" style="margin:0">
-          <input type="number" id="ph-${id}" value="${hours}" placeholder="ч" step="0.25" min="0" style="border:none;padding:0.35rem 0.5rem;font-size:0.85rem;background:transparent;color:var(--text);outline:none;width:100%;font-family:'DM Mono',monospace" oninput="calc()">
+          <input type="number" id="ph-${id}" value="${hours}" placeholder="ч" step="0.25" min="0" style="border:none;padding:0.35rem 0.5rem;font-size:0.85rem;background:transparent;color:var(--text);outline:none;width:100%;font-family:'DM Mono',monospace" oninput="calc();calcSet()">
           <span class="unit" style="font-size:0.7rem">ч</span>
         </div>
         <div class="input-wrap" style="margin:0">
-          <input type="number" id="pi-${id}" value="${items}" placeholder="шт" step="1" min="1" style="border:none;padding:0.35rem 0.5rem;font-size:0.85rem;background:transparent;color:var(--text);outline:none;width:100%;font-family:'DM Mono',monospace" oninput="calc()">
+          <input type="number" id="pi-${id}" value="${items}" placeholder="шт" step="1" min="1" style="border:none;padding:0.35rem 0.5rem;font-size:0.85rem;background:transparent;color:var(--text);outline:none;width:100%;font-family:'DM Mono',monospace" oninput="calc();calcSet()">
           <span class="unit" style="font-size:0.7rem">шт</span>
+        </div>
+        <div class="input-wrap" style="margin:0;background:rgba(200,169,110,0.12);border-radius:4px">
+          <input type="number" id="pa-${id}" value="${attempts}" placeholder="1" step="1" min="1" style="border:none;padding:0.35rem 0.5rem;font-size:0.85rem;background:transparent;color:var(--accent);font-weight:500;outline:none;width:100%;font-family:'DM Mono',monospace" oninput="calc();calcSet()">
+          <span class="unit" style="font-size:0.7rem">×</span>
         </div>
         <button onclick="removePart(${id})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:0 0.2rem;line-height:1" title="удалить">×</button>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:0.3rem;margin-top:0.15rem;padding:0 0.1rem">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:0.3rem;margin-top:0.15rem;padding:0 0.1rem">
         <div style="font-size:0.6rem;color:var(--muted);text-align:center">г пластика</div>
         <div style="font-size:0.6rem;color:var(--muted);text-align:center">ч печати</div>
         <div style="font-size:0.6rem;color:var(--muted);text-align:center">шт/пластина</div>
+        <div style="font-size:0.6rem;color:var(--accent2);text-align:center">попыток</div>
         <div></div>
       </div>
     `;
     document.getElementById('partsContainer').appendChild(div);
     calc();
+    calcSet();
   }
 
   function removePart(id) {
@@ -1402,9 +1410,11 @@
         const g = +pgEl.value || 0;
         const h = +document.getElementById('ph-' + i).value || 0;
         const items = Math.max(1, +document.getElementById('pi-' + i).value || 1);
-        totalPlaCost += (g / 1000) * spoolPrice / items;
-        totalElecCost += (printerWatts / 1000) * h / items * kwPrice
-                       + amortRate * h / items;
+        const paEl = document.getElementById('pa-' + i);
+        const attempts = Math.max(1, +(paEl ? paEl.value : 1) || 1);
+        totalPlaCost += (g / 1000) * spoolPrice / items * attempts;
+        totalElecCost += ((printerWatts / 1000) * h / items * kwPrice
+                       + amortRate * h / items) * attempts;
       }
       i++;
     }
@@ -1443,6 +1453,7 @@
   // ─────────────────────────────────────────────────────────────────
 
   let lastRecPrice = 0;
+  let lastRecListing = 0;
   let lastDirectCosts = 0;
 
   function calc() {
@@ -1451,9 +1462,11 @@
     const defectMult = 1 + ((+$('defectPct').value || 0) / 100);
     let plaCost, elecCost;
     if (isMulti) {
+      // В режиме нескольких частей брак задаётся полем «× попыток» у каждой детали,
+      // поэтому общий defectMult здесь не применяется (иначе двойной учёт).
       const t = getMultiPartTotals();
-      plaCost  = t.totalPlaCost  * defectMult;
-      elecCost = t.totalElecCost * defectMult;
+      plaCost  = t.totalPlaCost;
+      elecCost = t.totalElecCost;
     } else {
       const plaGrams      = +$('plaGrams').value || 0;
       const plaSpoolPrice = +$('plaSpoolPrice').value || 0;
@@ -1515,7 +1528,7 @@
       const msg = denomMin <= 0
         ? 'Комиссии Etsy превышают 100% — проверь % полей'
         : `Маржа ${(targetM*100).toFixed(0)}% + комиссии ${(priceDep*100).toFixed(1)}% = ${((targetM+priceDep)*100).toFixed(1)}% — больше 100%, цена не вычисляется`;
-      ['recPrice','minPrice','netProfit','price15','price20','profit20','launchPrice','launchProfit',
+      ['recPrice','recPayAfter','minPrice','netProfit','price15','price20','profit20','launchPrice','launchProfit',
        'markupDiff','wholesalePrice','wholesaleMin','wholesaleProfitNew','wholesaleProfitReg',
        'w2min','w2rec','w2retailMin','w2retailRec'].forEach(id => {
         const el = $(id); if (el) el.textContent = '—';
@@ -1529,7 +1542,9 @@
 
     const minPrice = (directCosts + pymtFix) / denomMin;
     const recPrice = (directCosts + pymtFix) / denomRec;
+    const recListing = recPrice / 0.80; // цена листинга с запасом под скидку 20%
     lastRecPrice = recPrice;
+    lastRecListing = recListing;
     lastDirectCosts = directCosts;
 
     // Fees at rec price
@@ -1553,21 +1568,22 @@
     const totalFixed   = cuotaMonth + adsMonth + overheadMonth + patreonMonth + etsyPlus;
 
     // Update main results
-    $('recPrice').textContent  = fmt(recPrice);
+    $('recPrice').textContent  = fmt(recListing);
+    const rpaEl = $('recPayAfter'); if (rpaEl) rpaEl.textContent = fmt(recPrice);
     $('minPrice').textContent  = fmt(minPrice);
     $('netProfit').textContent = fmt(netProfit);
 
     // Discount prices: to give X% off and still sell at recPrice,
     // the listing price must be recPrice / (1 - discount)
     const listingFor15 = recPrice / 0.85;
-    const listingFor20 = recPrice / 0.80;
+    const listingFor20 = recPrice / 0.75;
     $('price15').textContent = fmt(listingFor15);
     $('price20').textContent = fmt(listingFor20);
     $('after15').textContent = fmt(recPrice);
     $('after20').textContent = fmt(recPrice);
 
     // Profit if buyer gets 20% off (they pay recPrice * 0.8, but our costs stay same)
-    const salePrice20 = recPrice * 0.80;
+    const salePrice20 = recListing; // полная цена листинга (без скидки)
     const txSale20    = salePrice20 * txPct;
     const pymtSale20  = salePrice20 * pymtPct + pymtFix;
     const regSale20   = salePrice20 * regPct;
@@ -1622,7 +1638,7 @@
     const cogs        = plaCost + elecCost + consumables + packaging + labor;
     const markupMulti = +$('markupMulti').value || 4;
     const markupPrice = cogs * markupMulti;
-    const markupDiff  = markupPrice - recPrice;
+    const markupDiff  = markupPrice - recListing;
     $('markupLabel').textContent = markupMulti;
     $('markupPrice').textContent = fmt(markupPrice);
     $('markupDiff').textContent  = (markupDiff >= 0 ? '+' : '') + fmt(markupDiff);
@@ -1793,7 +1809,7 @@
     $('myMargin').textContent = margin.toFixed(1) + '%';
     $('myMargin').style.color = margin >= 30 ? '#4ade80' : margin >= 15 ? 'var(--accent2)' : '#ff9999';
 
-    const diff = p - lastRecPrice;
+    const diff = p - lastRecListing;
     $('myVsRec').textContent = (diff >= 0 ? '+' : '') + fmt(diff);
     $('myVsRec').style.color = diff >= 0 ? '#4ade80' : 'rgba(255,200,100,0.9)';
 
@@ -1842,9 +1858,10 @@
     const defectMult2 = 1 + ((+$('defectPct').value || 0) / 100);
     let matCost, elecCost;
     if ($('multiPartToggle').checked) {
+      // Брак учтён в полях «× попыток» по каждой детали
       const t = getMultiPartTotals();
-      matCost  = t.totalPlaCost  * defectMult2;
-      elecCost = t.totalElecCost * defectMult2;
+      matCost  = t.totalPlaCost;
+      elecCost = t.totalElecCost;
     } else {
       const printerWatts  = +$('printerWatts').value || 100;
       const kwPrice       = +$('kwPrice').value      || 0.23;
