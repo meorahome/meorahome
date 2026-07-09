@@ -512,6 +512,16 @@
     <div class="card full-width">
       <div class="card-title">Себестоимость · Материалы</div>
 
+      <!-- Printer selector -->
+      <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap">
+        <label style="font-size:0.78rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.07em;margin:0;display:inline">🖨 Принтер</label>
+        <select id="printerSelect" style="width:auto;min-width:190px">
+          <option value="a1" selected>Bambulab A1</option>
+          <option value="u1">Snapmaker U1</option>
+        </select>
+        <span id="printerInfo" style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace"></span>
+      </div>
+
       <!-- Multi-part toggle -->
       <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:1rem">
         <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.78rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.07em">
@@ -584,6 +594,14 @@
                 <input type="number" id="itemsPerPlate" value="1" step="1" min="1">
                 <span class="unit">шт</span>
               </div>
+            </div>
+            <div class="field">
+              <label>Попыток печати</label>
+              <div class="input-wrap">
+                <input type="number" id="printAttempts" value="1" step="1" min="1">
+                <span class="unit">×</span>
+              </div>
+              <div style="font-size:0.68rem;color:var(--muted);margin-top:0.25rem">сколько печатей на 1 годное изделие</div>
             </div>
             <div class="field">
               <label>Брак / переprint</label>
@@ -991,7 +1009,7 @@
       <span class="amount" id="bMaterials">—</span>
     </div>
     <div class="breakdown-row">
-      <span class="label">Электричество</span>
+      <span class="label">Печать: эл-во + амортизация + обслуживание</span>
       <span class="amount" id="bElec">—</span>
     </div>
     <div class="breakdown-row">
@@ -1119,6 +1137,13 @@
         <div class="input-wrap">
           <input type="number" id="kwPrice" value="0.23" step="0.01" min="0" disabled>
           <span class="unit">€/кВт</span>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Обслуживание принтера</label>
+        <div class="input-wrap">
+          <input type="number" id="maintPerHour" value="0.04" step="0.01" min="0" disabled>
+          <span class="unit">€/ч</span>
         </div>
       </div>
       <div class="field" style="margin-bottom:0">
@@ -1346,6 +1371,28 @@
     return '€' + n.toFixed(2);
   }
 
+  // ── Профили принтеров ─────────────────────────────────────────────
+  // watts — средняя мощность при печати; cost — цена принтера;
+  // hours — ресурс до износа (для амортизации); maint — обслуживание €/ч
+  // (сопла, пластины, смазка, ремни). U1: пик до 1150Вт, среднее ~150Вт;
+  // сопла фирменные стальные — обслуживание дороже.
+  const PRINTERS = {
+    a1: { label: 'Bambulab A1',  watts: 100, cost: 400, hours: 2000, maint: 0.04 },
+    u1: { label: 'Snapmaker U1', watts: 150, cost: 849, hours: 2000, maint: 0.08 }
+  };
+
+  function applyPrinter() {
+    const p = PRINTERS[$('printerSelect').value] || PRINTERS.a1;
+    $('printerWatts').value = p.watts;
+    $('printerCost').value  = p.cost;
+    $('printerHours').value = p.hours;
+    $('maintPerHour').value = p.maint;
+    const info = $('printerInfo');
+    if (info) info.textContent = p.watts + ' Вт · аморт. €' + (p.cost / p.hours).toFixed(2) + '/ч · обслуж. €' + p.maint.toFixed(2) + '/ч';
+    calc();
+    calcSet();
+  }
+
   // ── Multi-part logic ──────────────────────────────────────────────
   let partCount = 0;
 
@@ -1402,6 +1449,7 @@
     const printerCost  = +$('printerCost').value || 400;
     const printerHours = Math.max(1, +$('printerHours').value || 5000);
     const amortRate    = printerCost / printerHours;
+    const maintRate    = +$('maintPerHour').value || 0;
     let totalPlaCost = 0, totalElecCost = 0;
     let i = 1;
     while (i <= partCount) {
@@ -1414,7 +1462,7 @@
         const attempts = Math.max(1, +(paEl ? paEl.value : 1) || 1);
         totalPlaCost += (g / 1000) * spoolPrice / items * attempts;
         totalElecCost += ((printerWatts / 1000) * h / items * kwPrice
-                       + amortRate * h / items) * attempts;
+                       + (amortRate + maintRate) * h / items) * attempts;
       }
       i++;
     }
@@ -1459,7 +1507,8 @@
   function calc() {
     // PLA + Electricity: single or multi-part
     const isMulti = $('multiPartToggle').checked;
-    const defectMult = 1 + ((+$('defectPct').value || 0) / 100);
+    const printAttempts = Math.max(1, +($('printAttempts') ? $('printAttempts').value : 1) || 1);
+    const defectMult = printAttempts * (1 + ((+$('defectPct').value || 0) / 100));
     let plaCost, elecCost;
     if (isMulti) {
       // В режиме нескольких частей брак задаётся полем «× попыток» у каждой детали,
@@ -1478,8 +1527,9 @@
       const printerCost  = +$('printerCost').value || 400;
       const printerHours = Math.max(1, +$('printerHours').value || 5000);
       const amortRate    = printerCost / printerHours;
+      const maintRate    = +$('maintPerHour').value || 0;
       elecCost = ((printerWatts / 1000) * (printHours / itemsPerPlate) * kwPrice
-               + amortRate * (printHours / itemsPerPlate)) * defectMult;
+               + (amortRate + maintRate) * (printHours / itemsPerPlate)) * defectMult;
     }
 
     // Other direct costs
@@ -1855,7 +1905,8 @@
     const extras     = +$('consumables').value    || 0;
 
     // Per-unit core costs: single or multi-part
-    const defectMult2 = 1 + ((+$('defectPct').value || 0) / 100);
+    const printAttempts2 = Math.max(1, +($('printAttempts') ? $('printAttempts').value : 1) || 1);
+    const defectMult2 = printAttempts2 * (1 + ((+$('defectPct').value || 0) / 100));
     let matCost, elecCost;
     if ($('multiPartToggle').checked) {
       // Брак учтён в полях «× попыток» по каждой детали
@@ -1868,10 +1919,11 @@
       const printerCost   = +$('printerCost').value  || 400;
       const printerHours2 = Math.max(1, +$('printerHours').value || 5000);
       const amortRate2    = printerCost / printerHours2;
+      const maintRate2    = +$('maintPerHour').value || 0;
       const itemsPerPlate = Math.max(1, +$('itemsPerPlate').value || 1);
       matCost  = plaGrams / 1000 * plaPrice / itemsPerPlate * defectMult2;
       elecCost = ((printerWatts / 1000) * (printHours / itemsPerPlate) * kwPrice
-               + amortRate2 * (printHours / itemsPerPlate)) * defectMult2;
+               + (amortRate2 + maintRate2) * (printHours / itemsPerPlate)) * defectMult2;
     }
     const unitCoreCost = matCost + elecCost + extras;
 
@@ -1974,8 +2026,8 @@
   });
 
   // Init
-  calc();
-  calcSet();
+  $('printerSelect').addEventListener('change', applyPrinter);
+  applyPrinter(); // выставляет константы принтера и запускает calc()+calcSet()
 
 </script>
 <!-- PWA Setup -->
